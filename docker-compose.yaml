@@ -17,7 +17,7 @@ services:
     ports:
       - ${APP_PORT}:${APP_PORT}
     init: true
-    command: ['sleep', '365d']
+    command: ['/code/frontend/docker/scripts/run.sh']
 
 volumes:
   frontend-home:
