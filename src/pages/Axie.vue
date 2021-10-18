@@ -162,16 +162,22 @@
                   </a>
                 </td>
                 <td class="text-right">
-                  <q-checkbox
-                    v-model="cardUse[card.id]"
-                    size="xs"
+                  <q-input
+                    v-model.number="cardUse[card.id]"
+                    type="number"
+                    dense
+                    class="card-use-count"
+                    min="0"
                   />
                 </td>
                 <td class="text-right">
-                  <q-checkbox
+                  <q-input
                     v-if="cardBonus[card.id] != null"
-                    v-model="cardBonus[card.id]"
-                    size="xs"
+                    v-model.number="cardBonus[card.id]"
+                    type="number"
+                    dense
+                    class="card-use-count"
+                    min="0"
                   />
                 </td>
                 <td class="text-right">
@@ -363,9 +369,9 @@ fragment AxieStats on AxieStats {
             modifier: () => 0
           }
 
-          newUse[ability.id] = false
+          newUse[ability.id] = 0
 
-          newBonus[ability.id] = false
+          newBonus[ability.id] = 0
           if (cardsModifier[ability.id] == null) {
             newBonus[ability.id] = null
           }
@@ -389,41 +395,38 @@ fragment AxieStats on AxieStats {
 
       for (const key in axieCards.value) {
         const cls = axieCards.value[key].class
-
-        if (cardUse.value[key]) {
-          chain[cls] = (chain[cls] || 0) + 1
-        }
+        chain[cls] = (chain[cls] || 0) + cardUse.value[key]
       }
 
       const damage = {}
 
       for (const key in axieCards.value) {
         const card = axieCards.value[key]
+        damage[key] = 0
 
-        if (cardUse.value[key]) {
-          const dmgMod = damageGroupModifier[damageGroups[card.class]][damageAgainst.value]
+        const dmgMod = damageGroupModifier[damageGroups[card.class]][damageAgainst.value]
 
-          damage[key] = card.attack * dmgMod
-
-          console.log(card.class, axieData.value.class)
+        for (let uses = 1; uses <= cardUse.value[key]; uses++) {
+          console.log(card.id, uses)
+          let calculatedDamage = card.attack * dmgMod
 
           if (card.class === axieData.value.class) {
-            damage[key] = damage[key] * 1.1
+            calculatedDamage = calculatedDamage * 1.1
           } else if (damageGroups[card.class] === damageGroups[axieData.value.class]) {
-            damage[key] = damage[key] * 1.075
+            calculatedDamage = calculatedDamage * 1.075
           }
 
-          if (cardBonus.value[key]) {
-            damage[key] = cardsModifier[key](damage[key])
+          if (cardBonus.value[key] >= uses) {
+            calculatedDamage = cardsModifier[key](calculatedDamage)
           }
 
           if (chain[card.class] > 1) {
-            damage[key] += (card.attack * axieData.value.stats.skill) / 500
+            calculatedDamage += (card.attack * axieData.value.stats.skill) / 500
           }
 
-          damage[key] = Math.floor(damage[key])
-        } else {
-          damage[key] = 0
+          calculatedDamage = Math.floor(calculatedDamage)
+
+          damage[key] += calculatedDamage
         }
       }
       return damage
@@ -565,6 +568,10 @@ a {
   a {
     text-decoration: underline dotted;
   }
+}
+
+.card-use-count {
+  width: 40px;
 }
 
 $damage-border-radius: 5px;
