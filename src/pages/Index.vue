@@ -1,17 +1,41 @@
 <template>
   <q-page class="flex flex-center">
-    <img
-      alt="Quasar logo"
-      src="~assets/quasar-logo-vertical.svg"
-      style="width: 200px; height: 200px"
-    >
+    <q-form @submit="onSubmit">
+      <q-input
+        v-model.number="axieId"
+        type="number"
+        label="Axie ID"
+        :rules="[val => !!val || 'Field is required']"
+      />
+      <q-btn
+        color="primary"
+        class="full-width"
+        type="submit"
+        label="Load"
+      />
+    </q-form>
   </q-page>
 </template>
 
 <script>
-import { defineComponent } from 'vue'
+import { ref } from 'vue'
+import { useRouter } from 'vue-router'
 
-export default defineComponent({
-  name: 'PageIndex'
-})
+export default {
+  name: 'PageIndex',
+  setup () {
+    const $router = useRouter()
+
+    const axieId = ref()
+    const onSubmit = async function () {
+      console.log(axieId.value)
+      $router.push('/axie/' + axieId.value)
+    }
+
+    return {
+      axieId,
+      onSubmit
+    }
+  }
+}
 </script>
